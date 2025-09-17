@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+postgres:
+image: postgres:16
+container_name: pg_ecommerce
+ports:
+- "5432:5432"
+environment:
+POSTGRES_USER: app
+POSTGRES_PASSWORD: app_pw
+POSTGRES_DB: appdb
+volumes:
+- ./initdb:/docker-entrypoint-initdb.d
+healthcheck:
+test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+interval: 5s
+timeout: 5s
+retries: 20

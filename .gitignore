@@ -1,0 +1,62 @@
+# Build output
+bin/
+obj/
+out/
+publish/
+artifacts/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code settings
+.vscode/
+.history/
+*.code-workspace
+
+# Azure Functions local files
+.local.settings.json
+secrets.json
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Packages
+*.nupkg
+*.snupkg
+*.tgz
+*.tar.gz
+*.zip
+
+# NuGet / Paket
+packages/
+.nuget/
+*.lock.json
+
+# Docker
+docker-compose.override.yml
+*.pid
+*.seed
+*.swp
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# Test output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Misc
+*.tmp
+*.bak
+*.orig
