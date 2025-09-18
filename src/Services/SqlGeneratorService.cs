@@ -1,41 +1,49 @@
 using Microsoft.SemanticKernel;
-// using Microsoft.SemanticKernel.Prompts;
+using Microsoft.SemanticKernel.ChatCompletion;
 using GraphRagText2Sql.Models;
 using Microsoft.Extensions.Configuration; // 追加
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace GraphRagText2Sql.Services
 {
     public sealed class SqlGeneratorService
     {
         private readonly Kernel _kernel;
+
+        private readonly IChatCompletionService _chat;
         private readonly IConfiguration _config;
-        public SqlGeneratorService(Kernel kernel, IConfiguration config)
+        private readonly ILogger<SqlGeneratorService> _logger;
+        public SqlGeneratorService(Kernel kernel, IConfiguration config, ILogger<SqlGeneratorService> logger)
         {
-            _kernel = kernel; _config = config;
+            _kernel = kernel;
+            _chat = _kernel.GetRequiredService<IChatCompletionService>();
+            _config = config;
+            _logger = logger;
         }
 
         public async Task<(string sql, string promptUsed)> GenerateAsync(string question, GraphContext ctx)
         {
+
             var schemaContext = CosmosGraphService.BuildSchemaContext(ctx);
             var relationships = CosmosGraphService.BuildRelationships(ctx);
             var promptText = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "Prompts", "SqlGenPrompt.txt"));
-            // var t = new KernelPromptTemplate(promptText);
-            // var rendered = await t.RenderAsync(_kernel, new(new()
-            // {
-            //     ["schema_context"] = schemaContext,
-            //     ["relationships"] = relationships,
-            //     ["question"] = question
-            // }));
-            
-            // {{var}} を素朴に置換（POC簡易版）
             string rendered = promptText
                 .Replace("{{schema_context}}", schemaContext)
                 .Replace("{{relationships}}", relationships)
                 .Replace("{{question}}", question);
 
+            _logger.LogDebug("schemaContext : {schemaContext}", schemaContext);
+            _logger.LogDebug("relationships : {relationships}", relationships);
 
-            var result = await _kernel.InvokePromptAsync(rendered);
-            var sql = result.GetValue<string>()?.Trim() ?? string.Empty;
+            var history = new ChatHistory();
+            history.AddSystemMessage(rendered);
+            var result = await _chat.GetChatMessageContentAsync(history, kernel: _kernel);
+            var sql = result?.Content?
+                        .Trim()
+                        .Replace("```sql", "")
+                        .Replace("```", "") ?? string.Empty;
+            
             return (sql, rendered);
         }
     }

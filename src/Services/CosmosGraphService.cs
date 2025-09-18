@@ -3,7 +3,8 @@ using Microsoft.Azure.Cosmos;
 using GraphRagText2Sql.Models;
 using GraphRagText2Sql.Utilities;
 using System.Text;
-using Microsoft.Extensions.Configuration; // 追加
+using Microsoft.Extensions.Configuration;
+using Microsoft.SemanticKernel;
 
 namespace GraphRagText2Sql.Services
 {
@@ -14,72 +15,34 @@ namespace GraphRagText2Sql.Services
         private readonly string _container;
         private Container Container => _client.GetDatabase(_db).GetContainer(_container);
         private readonly IConfiguration _config;
+        private readonly Kernel _kernel;
 
-        public CosmosGraphService(CosmosClient client, IConfiguration config)
+        public CosmosGraphService(CosmosClient client, IConfiguration config, Kernel kernel)
         {
             _client = client;
             _db = config["Cosmos:Database"]!;
             _container = config["Cosmos:Container"]!;
             _config = config;
+            _kernel = kernel;
         }
         public async Task UpsertNodesAsync(IEnumerable<GraphNode> nodes)
         {
             foreach (var n in nodes)
-                await Container.UpsertItemAsync(n, new PartitionKey(n.Pk));
+                await Container.UpsertItemAsync(n, new PartitionKey(n.PartitionKey));
         }
         public async Task UpsertEdgesAsync(IEnumerable<GraphEdge> edges)
         {
             foreach (var e in edges)
-                await Container.UpsertItemAsync(e, new PartitionKey(e.Pk));
+                await Container.UpsertItemAsync(e, new PartitionKey(e.PartitionKey));
         }
 
-        // public async Task<GraphContext> RetrieveSubgraphAsync(string question, int topK, int maxHops)
-        // {
-        //     var tokens = TextUtils.Keywords(question).ToArray();
-        //     var likeClauses = string.Join(" OR ", tokens.Select((t, i) => $"CONTAINS(c.name, @t{i})"));
-
-        //     var q = new QueryDefinition($"SELECT * FROM c WHERE c.label IN ('table','column') AND ({likeClauses})")
-        //     .WithParameters(tokens.Select((t, i) => (name: $"@t{i}", val: t)));
-
-        //     var nodes = new List<GraphNode>();
-        //     using (var it = Container.GetItemQueryIterator<GraphNode>(q, requestOptions: new QueryRequestOptions { MaxItemCount = topK }))
-        //     {
-        //         while (it.HasMoreResults)
-        //             nodes.AddRange((await it.ReadNextAsync()).Resource);
-        //     }
-
-        //     // 近傍展開（maxHops）
-        //     var edges = new List<GraphEdge>();
-        //     var nodeIds = new HashSet<string>(nodes.Select(n => n.id));
-        //     for (int hop = 0; hop < maxHops; hop++)
-        //     {
-        //         var idParams = nodeIds.Select((id, i) => $"@id{i}").ToArray();
-        //         if (!idParams.Any()) break;
-        //         var eDef = new QueryDefinition($"SELECT * FROM c WHERE c.label IN ('has_column','fk') AND (ARRAY_CONTAINS(@ids, c.from) OR ARRAY_CONTAINS(@ids, c.to))")
-        //         .WithParameter("@ids", nodeIds.ToArray());
-
-        //         using var eit = Container.GetItemQueryIterator<GraphEdge>(eDef);
-        //         var newEdges = new List<GraphEdge>();
-        //         while (eit.HasMoreResults) newEdges.AddRange((await eit.ReadNextAsync()).Resource);
-        //         foreach (var e in newEdges) edges.Add(e);
-
-        //         // 新規ノード拡張
-        //         var neighborIds = newEdges.SelectMany(e => new[] { e.from, e.to }).Where(id => !nodeIds.Contains(id)).Distinct().ToArray();
-        //         if (neighborIds.Length == 0) break;
-
-        //         var nDef = new QueryDefinition($"SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)")
-        //         .WithParameter("@ids", neighborIds);
-
-        //         using var nit = Container.GetItemQueryIterator<GraphNode>(nDef);
-        //         while (nit.HasMoreResults) nodes.AddRange((await nit.ReadNextAsync()).Resource);
-        //         foreach (var id in neighborIds) nodeIds.Add(id);
-        //     }
-
-        //     return new GraphContext { Nodes = nodes.DistinctBy(n => n.id).ToList(), Edges = edges.DistinctBy(e => e.id).ToList() };
-        // }
         public async Task<GraphContext> RetrieveSubgraphAsync(string question, int topK, int maxHops)
         {
-            var tokens = TextUtils.Keywords(question).ToArray();
+            // var tokens = TextUtils.Keywords(question).ToArray();
+            // 1) 日本語→英語キーワードを LLM で補完（簡易版）
+            var jaTokens = TextUtils.Keywords(question);                 // 形態素分割済みの日本語トークン
+            var enTokens = await KeywordExpander.ExpandToEnglishAsync(_kernel, question); // LLMで英語候補を出す
+            var tokens = jaTokens.Concat(enTokens).Select(t => t.ToLowerInvariant()).Distinct().ToArray();
 
             // tokens が空の場合のフォールバック（全テーブル/主要列を少量取得）
             QueryDefinition q;
@@ -122,7 +85,7 @@ namespace GraphRagText2Sql.Services
                 // 関連エッジ取得
                 var eDef = new QueryDefinition(
                     "SELECT * FROM c WHERE c.label IN ('has_column','fk') AND " +
-                    "(ARRAY_CONTAINS(@ids, c.from) OR ARRAY_CONTAINS(@ids, c.to))"
+                    "(ARRAY_CONTAINS(@ids, c[\"from\"]) OR ARRAY_CONTAINS(@ids, c[\"to\"]))"
                 ).WithParameter("@ids", nodeIds.ToArray());
 
                 var eit = Container.GetItemQueryIterator<GraphEdge>(eDef);

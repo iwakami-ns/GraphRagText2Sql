@@ -14,16 +14,29 @@ namespace GraphRagText2Sql.Services
             string pk = "ecommerce";
             var tables = new[]
             {
-            "customers","addresses","categories","products","product_images","warehouses","inventory","orders","order_items","payments","shipments","reviews","v_sales_daily"
-            }.Select(t => new GraphNode($"t:{t}", "table", $"ecommerce.{t}", null, pk));
-
+                "customers","addresses","categories","products","product_images","warehouses",
+                "inventory","orders","order_items","payments","shipments","reviews","v_sales_daily"
+            }.Select(t => new GraphNode(
+                id: $"t:{t}",
+                label: "table",
+                name: $"ecommerce.{t}",
+                table: null,
+                PartitionKey: pk
+            ));
             // カラムノード（主要なもののみ、必要に応じ拡張）
             var columns = new List<GraphNode>();
             void AddCols(string table, params string[] cols)
             {
                 foreach (var c in cols)
-                columns.Add(new GraphNode($"c:{table}:{c}", "column", c, $"ecommerce.{table}", pk));
+                    columns.Add(new GraphNode(
+                        id: $"c:{table}:{c}",
+                        label: "column",
+                        name: c,
+                        table: $"ecommerce.{table}",
+                        PartitionKey: pk
+                    ));
             }
+            
             AddCols("customers", "customer_id","email","full_name","created_at");
             AddCols("addresses", "address_id","customer_id","address_type","prefecture","city");
             AddCols("categories", "category_id","name","parent_id");
@@ -44,15 +57,27 @@ namespace GraphRagText2Sql.Services
             var edges = new List<GraphEdge>();
             foreach (var col in columns)
             {
-                edges.Add(new GraphEdge($"e:hascol:{col.table}:{col.name}", "has_column", from: $"t:{col.table!.Split('.').Last()}", to: col.id, pk: pk));
+                edges.Add(new GraphEdge(
+                            id: $"e:hascol:{col.table}:{col.name}",
+                            label: "has_column",
+                            from: $"t:{col.table!.Split('.').Last()}",
+                            to: col.id,
+                            PartitionKey: pk
+                        ));
             }
 
             // fk edges（主要外部キーのみ）
             void Fk(string fromTable, string fromCol, string toTable, string toCol)
             {
-                edges.Add(new GraphEdge($"e:fk:{fromTable}:{fromCol}->{toTable}:{toCol}", "fk",
-                from: $"c:{fromTable}:{fromCol}", to: $"c:{toTable}:{toCol}", pk: pk));
+                edges.Add(new GraphEdge(
+                    id: $"e:fk:{fromTable}:{fromCol}->{toTable}:{toCol}",
+                    label: "fk",
+                    from: $"c:{fromTable}:{fromCol}",
+                    to: $"c:{toTable}:{toCol}",
+                    PartitionKey: pk
+                ));            
             }
+            
             Fk("addresses","customer_id","customers","customer_id");
             Fk("products","category_id","categories","category_id");
             Fk("product_images","product_id","products","product_id");

@@ -1,0 +1,25 @@
+### 正常動作確認
+GET http://localhost:7071/api/health
+
+### スキーマを Cosmos に投入
+POST http://localhost:7071/api/seed
+
+
+### 質問を投げる
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"直近30日で売上が多い上位5日の合計金額と注文数を教えて"}
+
+
+### 応答を確認
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"商品別の売上ランキングを教えてください。"}
+
+### 応答を確認
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"Please tell me the sales ranking by product"}
