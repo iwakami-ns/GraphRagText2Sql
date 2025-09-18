@@ -46,6 +46,12 @@ Content-Type: application/json
 
 {"Question":"在庫のある商品を教えてください。"}
 
+### 結合テーブル数２（GROUP BYあり）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"在庫のある商品と在庫数を教えてください。同一商品は集計してください。"}
+
 
 ### 結合テーブル数２
 POST http://localhost:7071/api/ask
@@ -92,3 +98,37 @@ POST http://localhost:7071/api/ask
 Content-Type: application/json
 
 {"Question":"売れ筋商品は何？"}
+
+
+### 注文番号からの逆引き（顧客）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文番号：ORD-20250901-0001は誰の注文ですか？"}
+
+### 注文番号からの逆引き（顧客）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文番号：ORD-20250901-0001の顧客情報を教えて"}
+
+
+### 注文番号からの逆引き（顧客）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文番号：ORD-20250901-0001の顧客名、電話番号を教えて"}
+
+
+### 注文番号からの逆引き（商品）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文番号：ORD-20250901-0001の商品情報を教えて"}
+
+
+### 注文番号からの逆引き（商品）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文番号：ORD-20250901-0001の商品名を教えて"}

@@ -8,6 +8,8 @@ using Microsoft.SemanticKernel;
 using GraphRagText2Sql.Services;
 using Azure;
 
+using System.Text;
+Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
 var host = new HostBuilder()
     .ConfigureAppConfiguration((ctx, cfg) =>
@@ -29,6 +31,7 @@ var host = new HostBuilder()
         logging.AddFilter("Microsoft", LogLevel.Warning);
         logging.AddFilter("System", LogLevel.Warning);
         logging.AddFilter("GraphRagText2Sql.Services.SqlGeneratorService", LogLevel.Trace);
+        logging.AddFilter("GraphRagText2Sql.Services.CosmosGraphService", LogLevel.Trace);
         logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Debug);
     })    
     .ConfigureFunctionsWorkerDefaults()

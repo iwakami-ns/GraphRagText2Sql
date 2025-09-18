@@ -5,6 +5,7 @@ using GraphRagText2Sql.Utilities;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
+using Microsoft.Extensions.Logging;
 
 namespace GraphRagText2Sql.Services
 {
@@ -16,14 +17,16 @@ namespace GraphRagText2Sql.Services
         private Container Container => _client.GetDatabase(_db).GetContainer(_container);
         private readonly IConfiguration _config;
         private readonly Kernel _kernel;
+        private readonly ILogger<CosmosGraphService> _logger;
 
-        public CosmosGraphService(CosmosClient client, IConfiguration config, Kernel kernel)
+        public CosmosGraphService(CosmosClient client, IConfiguration config, Kernel kernel, ILogger<CosmosGraphService> logger)
         {
             _client = client;
             _db = config["Cosmos:Database"]!;
             _container = config["Cosmos:Container"]!;
             _config = config;
             _kernel = kernel;
+            _logger = logger;
         }
         public async Task UpsertNodesAsync(IEnumerable<GraphNode> nodes)
         {
@@ -59,7 +62,10 @@ namespace GraphRagText2Sql.Services
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     q.WithParameter($"@t{i}", tokens[i]);
+                    _logger.LogDebug("Parameter t{i} : {tokens[i]}", i, tokens[i]);
                 }
+
+                _logger.LogDebug("Retrieve Initial Node : {q}", q.QueryText);
             }
 
             var nodes = new List<GraphNode>();
@@ -88,6 +94,8 @@ namespace GraphRagText2Sql.Services
                     "(ARRAY_CONTAINS(@ids, c[\"from\"]) OR ARRAY_CONTAINS(@ids, c[\"to\"]))"
                 ).WithParameter("@ids", nodeIds.ToArray());
 
+                _logger.LogDebug("Retrieve Related Edges : {eDef}", eDef.QueryText);
+
                 var eit = Container.GetItemQueryIterator<GraphEdge>(eDef);
                 var newEdges = new List<GraphEdge>();
                 while (eit.HasMoreResults)
@@ -110,6 +118,8 @@ namespace GraphRagText2Sql.Services
                 var nDef = new QueryDefinition(
                     "SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)"
                 ).WithParameter("@ids", neighborIds);
+
+                _logger.LogDebug("Retrieve Adjacent Nodes : {nDef}", nDef.QueryText);
 
                 var nit = Container.GetItemQueryIterator<GraphNode>(nDef);
                 while (nit.HasMoreResults)
