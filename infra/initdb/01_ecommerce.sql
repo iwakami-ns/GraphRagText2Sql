@@ -6,26 +6,15 @@ SELECT current_database();
 
 SELECT table_name, table_schema
 FROM information_schema.tables
--- WHERE table_schema = 'public';
-
-
--- select * from customers;
 
 -- 1) スキーマ作成
--- PostgreSQL on Azure 用（スキーマ作成＋citext拡張）
+-- PostgreSQL on Azure 用（スキーマ作成）
 DROP SCHEMA IF EXISTS ecommerce CASCADE;
 CREATE SCHEMA ecommerce;
 SET search_path TO ecommerce;
 
 -- 2) テーブル定義
 -- 顧客
--- CREATE TABLE customers (
---   customer_id      BIGSERIAL PRIMARY KEY,
---   email            CITEXT NOT NULL UNIQUE,
---   full_name        TEXT NOT NULL,
---   phone            TEXT,
---   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
 CREATE TABLE customers (
   customer_id BIGSERIAL PRIMARY KEY,
   email       TEXT NOT NULL,

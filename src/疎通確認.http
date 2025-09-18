@@ -5,21 +5,90 @@ GET http://localhost:7071/api/health
 POST http://localhost:7071/api/seed
 
 
-### 質問を投げる
+### 動作確認（英語質問）
+### スキーマは英語定義なので、単純な動作確認用
 POST http://localhost:7071/api/ask
 Content-Type: application/json
 
-{"Question":"直近30日で売上が多い上位5日の合計金額と注文数を教えて"}
+{"Question":"Please tell me the sales ranking by product"}
 
-
-### 応答を確認
+### 質問を投げる
 POST http://localhost:7071/api/ask
 Content-Type: application/json
 
 {"Question":"商品別の売上ランキングを教えてください。"}
 
-### 応答を確認
+
+### 行間の多い質問
 POST http://localhost:7071/api/ask
 Content-Type: application/json
 
-{"Question":"Please tell me the sales ranking by product"}
+{"Question":"直近30日で売上が多い上位5日の合計金額と注文数を教えて"}
+
+### 行間の多い質問を説明を正確に質問
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"直近30日で売上が多い上位5日の日付と日付別の合計金額と注文数を教えて"}
+
+
+### Viewを使用（※スキーマ的に商品の紐づけはできない）
+### 課題：商品の紐づけをする為のリレーションがないが、無視される
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"直近30日で売上が多い上位5日の合計金額と注文数と商品を教えて"}
+
+
+### 結合テーブル数２
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"在庫のある商品を教えてください。"}
+
+
+### 結合テーブル数２
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文済の商品を教えてください。"}
+
+
+### 結合テーブル数２
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文状況を教えてください。"}
+
+
+### 結合テーブル数２（LEFT JOIN）
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"注文と発送状況を教えてください。"}
+
+
+### 結合テーブル数３
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"発送済の注文と商品を教えてください。"}
+
+### 取得できるデータがない
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"決済済かつ出荷済の注文情報を教えてください。"}
+
+### ふんわりとした質問
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"売れた商品はどんなものがありますか？"}
+
+
+### ふんわりとした質問
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"売れ筋商品は何？"}

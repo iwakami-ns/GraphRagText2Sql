@@ -15,6 +15,30 @@ Graph RAG でスキーマを Cosmos DB に保存し、Semantic Kernel を利用�
 
 ---
 
+## 処理のシーケンス
+
+以下は、自然言語質問からSQL生成、実行、結果要約までの処理フローを示したシーケンス図です。
+
+```mermaid
+sequenceDiagram
+    participant User as ユーザー
+    participant FunctionApp as Azure Functions
+    participant CosmosDB as Cosmos DB（ナレッジグラフ）
+    participant PostgreSQL as PostgreSQL
+    participant OpenAI as Azure OpenAI
+
+    User->>FunctionApp: 質問を送信 (POST /api/ask)
+    FunctionApp->>OpenAI: スキーマ（テーブル名・列名）にマッチしやすい英語キーワードを抽出
+    FunctionApp->>CosmosDB: スキーマ情報を取得
+    FunctionApp->>OpenAI: 質問を元にSQLを生成
+    FunctionApp->>PostgreSQL: 生成したSQLを実行
+    PostgreSQL-->>FunctionApp: 実行結果を返却
+    FunctionApp->>OpenAI: 結果を要約
+    FunctionApp-->>User: 要約と結果を返却
+```
+
+---
+
 ## ディレクトリ構成
 
 ```
@@ -29,10 +53,10 @@ GraphRagText2Sql/
 │  └─ FunctionApp.csproj
 ├─ infra/
 │  ├─ docker-compose.yml # PostgreSQL 起動
-│  └─ initdb/01\_ecommerce.sql # スキーマ+サンプルデータ
+│  └─ initdb/01_ecommerce.sql # スキーマ+サンプルデータ
 └─ README.md
 
-````
+```
 
 ---
 
@@ -52,7 +76,7 @@ GraphRagText2Sql/
 ```bash
 cd infra
 docker compose up -d
-````
+```
 
 → コンテナ起動後、自動的に `ecommerce` スキーマとサンプルデータが投入されます。
 

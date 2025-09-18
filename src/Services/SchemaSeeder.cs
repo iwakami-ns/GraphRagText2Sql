@@ -9,7 +9,7 @@ namespace GraphRagText2Sql.Services
 
         public async Task SeedAsync()
         {
-        // 提供スキーマを手作業でシンプル投入（POC用）
+        // 提供スキーマを手作業でシンプル投入
         // テーブルノード
             string pk = "ecommerce";
             var tables = new[]
@@ -49,6 +49,7 @@ namespace GraphRagText2Sql.Services
             AddCols("payments", "payment_id","order_id","method","amount","status","paid_at");
             AddCols("shipments", "shipment_id","order_id","carrier","tracking_number","status","shipped_at","delivered_at");
             AddCols("reviews", "review_id","product_id","customer_id","rating","created_at");
+            AddCols("v_sales_daily", "order_date", "orders", "gross_sales");
 
             await _graph.UpsertNodesAsync(tables);
             await _graph.UpsertNodesAsync(columns);
