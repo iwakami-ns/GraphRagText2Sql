@@ -273,7 +273,7 @@ curl -s -X POST http://localhost:7071/api/ask \
 "OpenAI": { 
   "Endpoint": "...", 
   "ApiKey": "...", 
-  "Deployment": "gpt-4o-mini" 
+  "Deployment": "gpt-4o" 
 },
 "Cosmos": { 
   "Endpoint": "...", 
