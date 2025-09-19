@@ -215,50 +215,47 @@ curl -s -X POST http://localhost:7071/api/ask \
 ## 7. 実装詳細
 
 * **SchemaSeeder**: テーブル/カラムノード・外部キーエッジを Cosmos DB に登録
-  
-  * グラフDB上では以下のような構造になります。
-  ```mermaid
-  graph TD
-    %% ===== Node Styles =====
-    classDef table fill:#eef7ff,stroke:#1e64b7,stroke-width:1.5px,color:#0b3d7a,rx:8,ry:8;
-    classDef column fill:#fff7e6,stroke:#a15c00,stroke-width:1.2px,color:#5a3700,rx:6,ry:6;
-    classDef legend fill:#f5f5f5,stroke:#888,stroke-width:1px,color:#333,rx:6,ry:6;
-
-    %% ===== Tables =====
-    T_products["t:products<br/><small>(table)</small>"]:::table
-    T_orders["t:orders<br/><small>(table)</small>"]:::table
-
-    %% ===== Columns (products) =====
-    C_products_id["c:products:product_id<br/><small>(column)</small>"]:::column
-    C_products_name["c:products:name<br/><small>(column)</small>"]:::column
-
-    %% ===== Columns (orders) =====
-    C_orders_id["c:orders:order_id<br/><small>(column)</small>"]:::column
-    C_orders_product_id["c:orders:product_id<br/><small>(column)</small>"]:::column
-
-    %% ===== has_column edges (Table -> Column) =====
-    T_products -->|"has_column"| C_products_id
-    T_products -->|"has_column"| C_products_name
-    T_orders -->|"has_column"| C_orders_id
-    T_orders -->|"has_column"| C_orders_product_id
-
-    %% ===== fk edges (Column -> Column) =====
-    C_orders_product_id -.->|"fk"| C_products_id
-
-    %% ===== Legend =====
-    subgraph Legend [凡例]
-      L1["テーブルノード<br/>(label: table)"]:::table
-      L2["カラムノード<br/>(label: column)"]:::column
-      L3["has_column : テーブル → カラム"]:::legend
-      L4["fk : カラム → カラム（外部キー）"]:::legend
-    end
-  ```
-  * この図では：
+  * グラフDB上では以下図のような構造になります。<br/>凡例は以下となります。
     * **青いノード** → テーブル
     * **オレンジのノード** → カラム
     * **実線矢印 (has\_column)** → 「テーブルがカラムを持つ」関係
     * **点線矢印 (fk)** → 「外部キーによる参照」関係
-    * 下部に凡例をつけ、色・矢印の意味を明示
+    ```mermaid
+    graph TD
+      %% ===== Node Styles =====
+      classDef table fill:#eef7ff,stroke:#1e64b7,stroke-width:1.5px,color:#0b3d7a,rx:8,ry:8;
+      classDef column fill:#fff7e6,stroke:#a15c00,stroke-width:1.2px,color:#5a3700,rx:6,ry:6;
+      classDef legend fill:#f5f5f5,stroke:#888,stroke-width:1px,color:#333,rx:6,ry:6;
+
+      %% ===== Tables =====
+      T_products["t:products<br/><small>(table)</small>"]:::table
+      T_orders["t:orders<br/><small>(table)</small>"]:::table
+
+      %% ===== Columns (products) =====
+      C_products_id["c:products:product_id<br/><small>(column)</small>"]:::column
+      C_products_name["c:products:name<br/><small>(column)</small>"]:::column
+
+      %% ===== Columns (orders) =====
+      C_orders_id["c:orders:order_id<br/><small>(column)</small>"]:::column
+      C_orders_product_id["c:orders:product_id<br/><small>(column)</small>"]:::column
+
+      %% ===== has_column edges (Table -> Column) =====
+      T_products -->|"has_column"| C_products_id
+      T_products -->|"has_column"| C_products_name
+      T_orders -->|"has_column"| C_orders_id
+      T_orders -->|"has_column"| C_orders_product_id
+
+      %% ===== fk edges (Column -> Column) =====
+      C_orders_product_id -.->|"fk"| C_products_id
+
+      %% ===== Legend =====
+      subgraph Legend [凡例]
+        L1["テーブルノード<br/>(label: table)"]:::table
+        L2["カラムノード<br/>(label: column)"]:::column
+        L3["has_column : テーブル → カラム"]:::legend
+        L4["fk : カラム → カラム（外部キー）"]:::legend
+      end
+    ```
 
 * **KeywordExpander**: 質問から英語キーワード抽出
 * **CosmosGraphService**: スキーマとリレーションを文字列化
