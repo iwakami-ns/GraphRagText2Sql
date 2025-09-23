@@ -41,11 +41,12 @@ namespace GraphRagText2Sql.Services
 
         public async Task<GraphContext> RetrieveSubgraphAsync(string question, int topK, int maxHops)
         {
-            // var tokens = TextUtils.Keywords(question).ToArray();
+
             // 1) 日本語→英語キーワードを LLM で補完（簡易版）
-            var jaTokens = TextUtils.Keywords(question);                 // 形態素分割済みの日本語トークン
-            var enTokens = await KeywordExpander.ExpandToEnglishAsync(_kernel, question); // LLMで英語候補を出す
-            var tokens = jaTokens.Concat(enTokens).Select(t => t.ToLowerInvariant()).Distinct().ToArray();
+            var enQuestion = await KeywordExpander.TranslateToEnglishAsync(_kernel, question); // LLMで英語翻訳を出す
+            var enQuestionTokens = TextUtils.Keywords(enQuestion);                 // 形態素分割済みの英語トークン
+            var enTokens = await KeywordExpander.ExtractSqlKeywordsAsync(_kernel, enQuestion); // LLMで英語候補を出す
+            var tokens = enQuestionTokens.Concat(enTokens).Select(t => t.ToLowerInvariant()).Distinct().ToArray();
 
             // tokens が空の場合のフォールバック（全テーブル/主要列を少量取得）
             QueryDefinition q;
