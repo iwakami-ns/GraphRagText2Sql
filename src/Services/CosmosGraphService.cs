@@ -22,8 +22,8 @@ namespace GraphRagText2Sql.Services
         public CosmosGraphService(CosmosClient client, IConfiguration config, Kernel kernel, ILogger<CosmosGraphService> logger)
         {
             _client = client;
-            _db = config["Cosmos:Database"]!;
-            _container = config["Cosmos:Container"]!;
+            _db = config["CosmosSQLAPI:Database"]!;
+            _container = config["CosmosSQLAPI:Container"]!;
             _config = config;
             _kernel = kernel;
             _logger = logger;
