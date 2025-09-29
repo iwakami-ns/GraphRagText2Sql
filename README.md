@@ -1,4 +1,3 @@
-
 # Graph RAG + Text-to-SQL + Azure Functions (C#/.NET 8)
 
 このプロジェクトは **自然言語質問 → SQL生成 → PostgreSQL実行 → 結果要約** を行う POC です。
@@ -270,19 +269,25 @@ curl -s -X POST http://localhost:7071/api/ask \
 `src/appsettings.json` または環境変数で指定
 
 ```json
-"OpenAI": { 
-  "Endpoint": "...", 
-  "ApiKey": "...", 
-  "Deployment": "gpt-4o" 
+"OpenAI": {
+  "Endpoint": "https://<your-resource>.openai.azure.com/",
+  "ApiKey": "<your-resource>",
+  "Deployment": "gpt-4o"
 },
-"Cosmos": { 
-  "Endpoint": "...", 
-  "Key": "...", 
-  "Database": "graphdb", 
-  "Container": "graph" 
+"CosmosGremlinAPI": {
+  "hostname": "<your-resource>",
+  "Key": "<your-resource>",
+  "Database": "graphdb",
+  "Container": "graph"
 },
-"Postgres": { 
-  "ConnectionString": "Host=localhost;Port=5432;..."
+"CosmosSQLAPI": {
+  "Endpoint": "https://<your-resource>.documents.azure.com:443/",
+  "Key": "<your-resource>",
+  "Database": "graphdb",
+  "Container": "graph"
+},
+"Postgres": {
+  "ConnectionString": "<your-resource>"
 }
 ```
 

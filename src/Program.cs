@@ -6,7 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging; // ★ 追加
 using Microsoft.SemanticKernel;
 using GraphRagText2Sql.Services;
-using Azure;
+using Gremlin.Net.Driver;
+using Gremlin.Net.Structure.IO.GraphSON;
 
 using System.Text;
 Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
@@ -42,8 +43,8 @@ var host = new HostBuilder()
         // Cosmos
         services.AddSingleton(sp =>
         {
-            var ep = config["Cosmos:Endpoint"]!;
-            var key = config["Cosmos:Key"]!;
+            var ep = config["CosmosSQLAPI:Endpoint"]!;
+            var key = config["CosmosSQLAPI:Key"]!;
             var client = new CosmosClient(ep, key, new CosmosClientOptions
             {
                 SerializerOptions = new CosmosSerializationOptions { PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase }
@@ -53,6 +54,22 @@ var host = new HostBuilder()
 
         services.AddSingleton<CosmosGraphService>();
         services.AddSingleton<SchemaSeeder>();
+
+        services.AddSingleton(sp =>
+        {
+            var hostname = $"{config["CosmosGremlinAPI:hostname"]}.gremlin.cosmos.azure.com";
+            var port = 443;
+            var enableSsl = true;
+            var username = $"/dbs/{config["CosmosGremlinAPI:Database"]}/colls/{config["CosmosGremlinAPI:Container"]}";
+            var password = config["CosmosGremlinAPI:Key"]!;
+
+            return new GremlinClient(
+                new GremlinServer(hostname, port, enableSsl, username, password),
+                new GraphSON2MessageSerializer());
+        });
+
+        services.AddSingleton<SchemaSeederforGremlin>();
+
 
         // Semantic Kernel + Azure OpenAI
         services.AddSingleton(sp =>

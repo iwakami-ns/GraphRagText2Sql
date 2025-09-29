@@ -1,8 +1,12 @@
 ### 正常動作確認
 GET http://localhost:7071/api/health
 
-### スキーマを Cosmos に投入
+### スキーマを Cosmos for SQL API に投入
 POST http://localhost:7071/api/seed
+
+
+### スキーマを Cosmos for Gremlin API に投入
+POST http://localhost:7071/api/seed-gremlin
 
 
 ### 動作確認（英語質問）
@@ -17,6 +21,13 @@ POST http://localhost:7071/api/ask
 Content-Type: application/json
 
 {"Question":"商品別の売上ランキングを教えてください。"}
+
+
+### 質問を投げる
+POST http://localhost:7071/api/ask
+Content-Type: application/json
+
+{"Question":"直近30日間で最も売れた商品は？"}
 
 
 ### 行間の多い質問
